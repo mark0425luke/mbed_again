@@ -1,0 +1,164 @@
+[
+    {
+        "module": "../..",
+        "size": {
+            ".text": 32724,
+            ".data": 444,
+            ".bss": 8014,
+            ".text-delta": 32724,
+            ".data-delta": 444,
+            ".bss-delta": 8014
+        }
+    },
+    {
+        "module": "BUILD/B_L4S5I_IOT01A",
+        "size": {
+            ".text": 1864,
+            ".data": 68,
+            ".bss": 1204,
+            ".text-delta": 1864,
+            ".data-delta": 68,
+            ".bss-delta": 1204
+        }
+    },
+    {
+        "module": "[fill]",
+        "size": {
+            ".text": 128,
+            ".data": 4,
+            ".bss": 33,
+            ".text-delta": 6,
+            ".data-delta": -4,
+            ".bss-delta": 4
+        }
+    },
+    {
+        "module": "[lib]/c.a",
+        "size": {
+            ".text": 32284,
+            ".data": 2472,
+            ".bss": 89,
+            ".text-delta": 4024,
+            ".data-delta": 0,
+            ".bss-delta": 0
+        }
+    },
+    {
+        "module": "[lib]/gcc.a",
+        "size": {
+            ".text": 3104,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": 0,
+            ".data-delta": 0,
+            ".bss-delta": 0
+        }
+    },
+    {
+        "module": "[lib]/misc",
+        "size": {
+            ".text": 180,
+            ".data": 4,
+            ".bss": 28,
+            ".text-delta": 0,
+            ".data-delta": 0,
+            ".bss-delta": 0
+        }
+    },
+    {
+        "module": "cmsis/CMSIS_5",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -5948,
+            ".data-delta": -164,
+            ".bss-delta": -1868
+        }
+    },
+    {
+        "module": "cmsis/device",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -950,
+            ".data-delta": -4,
+            ".bss-delta": -4344
+        }
+    },
+    {
+        "module": "connectivity/FEATURE_BLE",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -84,
+            ".data-delta": 0,
+            ".bss-delta": -40
+        }
+    },
+    {
+        "module": "drivers/source",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -140,
+            ".data-delta": 0,
+            ".bss-delta": 0
+        }
+    },
+    {
+        "module": "hal/source",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -1602,
+            ".data-delta": -8,
+            ".bss-delta": -114
+        }
+    },
+    {
+        "module": "platform/source",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -4458,
+            ".data-delta": -260,
+            ".bss-delta": -424
+        }
+    },
+    {
+        "module": "storage/blockdevice",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -36,
+            ".data-delta": 0,
+            ".bss-delta": -4
+        }
+    },
+    {
+        "module": "targets/TARGET_STM",
+        "size": {
+            ".text": 0,
+            ".data": 0,
+            ".bss": 0,
+            ".text-delta": -12692,
+            ".data-delta": -8,
+            ".bss-delta": -1100
+        }
+    },
+    {
+        "summary": {
+            "static_ram": 12360,
+            "static_ram_delta": 1392,
+            "total_flash": 73276,
+            "total_flash_delta": 12772
+        }
+    }
+]
