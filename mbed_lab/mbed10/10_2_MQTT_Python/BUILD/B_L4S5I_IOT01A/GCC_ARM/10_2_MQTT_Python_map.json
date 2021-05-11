@@ -4,7 +4,7 @@
         "size": {
             ".text": 194,
             ".data": 7,
-            ".bss": 37,
+            ".bss": 45,
             ".text-delta": 0,
             ".data-delta": 0,
             ".bss-delta": 0
@@ -57,9 +57,9 @@
     {
         "module": "ee2405/mbed-os",
         "size": {
-            ".text": 57876,
+            ".text": 48270,
             ".data": 543,
-            ".bss": 13929,
+            ".bss": 12615,
             ".text-delta": 0,
             ".data-delta": 0,
             ".bss-delta": 0
@@ -71,6 +71,28 @@
             ".text": 3338,
             ".data": 4,
             ".bss": 409,
+            ".text-delta": 0,
+            ".data-delta": 0,
+            ".bss-delta": 0
+        }
+    },
+    {
+        "module": "wifi-ism43362/ISM43362",
+        "size": {
+            ".text": 6210,
+            ".data": 0,
+            ".bss": 2,
+            ".text-delta": 0,
+            ".data-delta": 0,
+            ".bss-delta": 0
+        }
+    },
+    {
+        "module": "wifi-ism43362/ISM43362Interface.o",
+        "size": {
+            ".text": 3396,
+            ".data": 0,
+            ".bss": 1312,
             ".text-delta": 0,
             ".data-delta": 0,
             ".bss-delta": 0
@@ -89,7 +111,7 @@
     },
     {
         "summary": {
-            "static_ram": 17528,
+            "static_ram": 17536,
             "static_ram_delta": 0,
             "total_flash": 116496,
             "total_flash_delta": 0

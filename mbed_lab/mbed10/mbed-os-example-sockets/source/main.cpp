@@ -52,9 +52,12 @@ class SocketDemo {
              printf("Error! _socket.connect() returned: %d\r\n", result);
              return;
          }
- 
+
+        
          if (!send_http_request() || !receive_http_response())
              return;
+
+        
  
          printf("Demo concluded successfully \r\n");
      }
