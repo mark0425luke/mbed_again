@@ -238,10 +238,10 @@ void Menu::show(){
       uLCD.locate(4,6);
       uLCD.printf("             ");
       uLCD.locate(4,8);
-      if(gesture_data==0) uLCD.printf("ges %d ",ANGLE_0);
-      else if(gesture_data==1) uLCD.printf("ges %d ",ANGLE_1);
-      else if(gesture_data==2) uLCD.printf("ges %d ",ANGLE_2);
-      else  uLCD.printf("ges x        ");
+      if(gesture_data==0) uLCD.printf("angle %d ",ANGLE_0);
+      else if(gesture_data==1) uLCD.printf("angle %d ",ANGLE_1);
+      else if(gesture_data==2) uLCD.printf("angle %d ",ANGLE_2);
+      else  uLCD.printf("angle x        ");
       
     }
     else if(mode == MODE_TILT){
