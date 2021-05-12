@@ -61,6 +61,7 @@ volatile bool closed = false;
 const char* topic = "Mbed";
 Thread mqtt_thread(osPriorityHigh);
 EventQueue mqtt_queue;
+EventQueue queue;
 
 //mine: variable
 #define LABEL_NUM 3
@@ -70,14 +71,17 @@ int gesture_data;
 #define MODE_RETRIEVE 2
 int mode;
 
-int CaptureData[20][3];
+int idR[32] = {0};
+int indexR = 0;
+int CaptureData[32][3];
+int feature = 0; // 0 ~ 9
 
 #define GESTURE_0 0
 #define GESTURE_1 1
 #define GESTURE_2 2
 float angleDetermine;
 
-
+int captureTimes =0;
 
 #define PI 3.14159
 #define GRAVITY 991.0
@@ -154,80 +158,84 @@ void messageArrived(MQTT::MessageData& md) {
 }
 
 void publish_message(MQTT::Client<MQTTNetwork, Countdown>* client) {
-    //printf("enter publish message\n");//.......................test
 
-    //mine: publish message
-    if( (mode==MODE_GESTURE) && (gesture_data!=3)  ){ //make sure already select gesture
-      //mine: angle for later tilt mode
-      angleDetermine= (gesture_data==0)?ANGLE_0: 
-                      (gesture_data==1)?ANGLE_1:
-                      (gesture_data==2)?ANGLE_2:
-                      90;
-
-      //angle           
-      message_num++;
-      MQTT::Message message;
-      char buff[100];
-      if(gesture_data==0){
-        sprintf(buff, "angle selected is %d", ANGLE_0);
-      }
-      else if(gesture_data==1){
-        sprintf(buff, "angle selected is %d", ANGLE_1);
-      }
-      else if(gesture_data==2){
-        sprintf(buff, "angle selected is %d", ANGLE_2);
-      }
-      else{
-        sprintf(buff, "angle not selected");
-      }
-      
-      message.qos = MQTT::QOS0;
-      message.retained = false;
-      message.dup = false;
-      message.payload = (void*) buff;
-      message.payloadlen = strlen(buff) + 1;
-      int rc = client->publish(topic, message);
-
-      //printf("rc:  %d\r\n", rc);
-      //printf("Puslish message: %s\r\n", buff);
+    
+    if (mode==MODE_CAPTURE){
+        message_num++;
+        MQTT::Message message;
+        char buff[100];
+        
+        sprintf(buff, "%dth time, ges ID : ",captureTimes);
+        
+        message.qos = MQTT::QOS0;
+        message.retained = false;
+        message.dup = false;
+        message.payload = (void*) buff;
+        message.payloadlen = strlen(buff) + 1;
+        int rc = client->publish(topic, message);
     }
-    else if( (mode==MODE_TILT) && (tiltMode==TILT_DETECT) ){
-      message_num++;
-      MQTT::Message message;
-      char buff[100];
-      sprintf(buff, "%d th angle over", angleOver);
-      message.qos = MQTT::QOS0;
-      message.retained = false;
-      message.dup = false;
-      message.payload = (void*) buff;
-      message.payloadlen = strlen(buff) + 1;
-      int rc = client->publish(topic, message);
+    else if(mode == MODE_RETRIEVE){
+        message_num++;
+        MQTT::Message message;
+        char buff[100];
+        
+        sprintf(buff, "feature: ");
+        for(int i=0;i<10;i++){
+          strcat(buff,"%d ",feature[i]);
+        }
+        
+        message.qos = MQTT::QOS0;
+        message.retained = false;
+        message.dup = false;
+        message.payload = (void*) buff;
+        message.payloadlen = strlen(buff) + 1;
+        int rc = client->publish(topic, message);
     }
-    else{}
+    else{
+
+    }
+
 }
+
 
 void close_mqtt() {
     closed = true;
 }
 
 
-
-int idR[32] = {0};
-int indexR = 0;
 void record(void) {
-   BSP_ACCELERO_AccGetXYZ(pDataXYZ);
-   printf("%d, %d, %d\n", pDataXYZ[0], pDataXYZ[1], pDataXYZ[2]);
+  if(mode == MODE_CAPTURE){
+    int16_t pDataXYZ[3] = {0};
+    BSP_ACCELERO_AccGetXYZ(pDataXYZ);
+    CaptureData[indexR][0] = pDataXYZ[0];
+    CaptureData[indexR][1] = pDataXYZ[1];
+    CaptureData[indexR][2] = pDataXYZ[2];
+  }
 }
 void startRecord(void) {
-   printf("---start---\n");
-   idR[indexR++] = queue.call_every(1ms, record);
-   indexR = indexR % 32;
+  //led
+  myled1 = 1;
+  //
+   if(mode == MODE_CAPTURE){
+    printf("---start---\n");
+    idR[indexR++] = queue.call_every(1ms, record);
+    indexR = indexR % 32;
+   }
 }
 
 void stopRecord(void) {
-   printf("---stop---\n");
-   for (auto &i : idR)
-      queue.cancel(i);
+  //led
+  myled1 = 0;
+
+  //
+  if(mode == MODE_CAPTURE){
+    printf("---stop---\n");
+    for (auto &i : idR)
+        queue.cancel(i);
+    Analyze();
+    captureTimes++;
+    mqtt_queue.call(&publish_message, &client);
+  }
 }
 
 
@@ -242,55 +250,51 @@ class Menu{
 Menu::Menu(){
 }
 void Menu::show(){
-  if(mode == MODE_GESTURE){
+  if(mode == MODE_CAPTURE){
       
-      //mode and angle selection
-      uLCD.locate(4,4);
-      uLCD.printf("MODE_GEST");
-      uLCD.locate(4,6);
-      uLCD.printf("             ");
-      uLCD.locate(4,8);
-      if(gesture_data==0){
-        uLCD.printf("angle %d ",ANGLE_0);
-      }
-      else if(gesture_data==1){
-        uLCD.printf("angle %d ",ANGLE_1);
-      } 
-      else if(gesture_data==2){ 
-        uLCD.printf("angle %d ",ANGLE_2);
-      }
-      else  {
-        uLCD.printf("angle x        ");
-      }
-      
+    //mode and angle selection
+    uLCD.locate(4,4);
+    uLCD.printf("MODE_CAPTURE");
+    uLCD.locate(4,6);
+    uLCD.printf("             ");
+    uLCD.locate(4,8);
+    
+    /*if(gesture_data==0){
+      uLCD.printf("angle %d ",ANGLE_0);
     }
-    else if(mode == MODE_TILT){
-      //LED
-      myled3=0;
-      if( tiltMode==TILT_DETECT )
-        myled1 = 1;
-      else
-        myled1 = 0;
+    else if(gesture_data==1){
+      uLCD.printf("angle %d ",ANGLE_1);
+    } 
+    else if(gesture_data==2){ 
+      uLCD.printf("angle %d ",ANGLE_2);
+    }
+    else  {
+      uLCD.printf("angle x        ");
+    }*/
+    
+  }
+  else if(mode == MODE_RETRIEVE){
+    //LED
 
-      //mode and angle detection
-      //uLCD.cls();
-      //uLCD.reset();
-      uLCD.locate(4,4);
-      uLCD.printf("MODE_TILT");
-      if(tiltMode==TILT_UNINIT){
-        uLCD.locate(4,6);
-        uLCD.printf("uninitialized");
-        uLCD.locate(4,8);
-        uLCD.printf("angle : %.2f",angle);
-      }
-      else{
-        uLCD.locate(4,6);
-        uLCD.printf("initialized");
-        uLCD.locate(4,8);
-        uLCD.printf("angle : %.2f",angle);
-      }
+    //mode and angle detection
+    uLCD.locate(4,4);
+    uLCD.printf("MODE_RETRIEVE");
+    
+    
+    /*if(tiltMode==TILT_UNINIT){
+      uLCD.locate(4,6);
+      uLCD.printf("uninitialized");
+      uLCD.locate(4,8);
+      uLCD.printf("angle : %.2f",angle);
     }
-    else{}
+    else{
+      uLCD.locate(4,6);
+      uLCD.printf("initialized");
+      uLCD.locate(4,8);
+      uLCD.printf("angle : %.2f",angle);
+    }*/
+  }
+  else{}
 }
 Menu menu;
 
@@ -306,7 +310,7 @@ void  LedLcd();
 int   AngleSelect();
 void  AngleDetect();
 void  NetworkSetup();
-void Analyze();
+void  Analyze();
 
 
 
@@ -358,10 +362,6 @@ int main() {
   mqtt_thread.start(callback(&mqtt_queue, &EventQueue::dispatch_forever));
 
 
-  //interrupt user_button
-  UserBtn.rise(mqtt_queue.event(&publish_message, &client));
-
-
 
 
   //The mbed RPC classes are now wrapped to create an RPC enabled version - see RpcClasses.h so don't add to base class
@@ -404,7 +404,14 @@ void capture(Arguments *in, Reply *out){
 }
 
 void retrieve(Arguments *in, Reply *out){
+  //mode
+  mode = MODE_RETRIEVE;
 
+  //publish
+  mqtt_queue.call(&publish_message, &client);
+
+  //reset some value
+  captureTimes = 0;
   
 }
 
@@ -415,49 +422,6 @@ void LedLcd(){
   }
 }
 
-void AngleDetect(){
-  
-  
-  while(true){
-    if(mode == ){
-      //initialize
-      BSP_ACCELERO_Init();
-      int16_t pDataXYZ[3] = {0};
-      BSP_ACCELERO_AccGetXYZ(pDataXYZ);
-      
-      
-      //calculate 
-      
-      
-      //tiltMode
-      if( tiltMode==TILT_UNINIT ){
-        if( (pDataXYZ[0]>-10)&&(pDataXYZ[0]<10) &&
-            (pDataXYZ[1]>-10)&&(pDataXYZ[1]<10) &&
-            (pDataXYZ[2]>GRAVITY-3)&&(pDataXYZ[2]<GRAVITY+3)  ){
-          tiltMode = TILT_DETECT;
-        }
-      }
-      else if( tiltMode==TILT_DETECT){
-        if( angle > angleDetermine ){
-          //mine: queue put in publish_message
-          //mqtt_queue.call( publish_message,  );
-          //mqtt_queue.event(&publish_message, &client);
-          angleOver++;
-          mqtt_queue.call(&publish_message, &client);
-          //publish_message(client);
-        }
-      }
-      else{}
-      
-      ThisThread::sleep_for(300ms);
-    }
-    else{
-      ThisThread::sleep_for(500ms);
-    }
-  }
-  
-  
-}
 
 int AngleSelect(){
   
@@ -529,29 +493,11 @@ int AngleSelect(){
 
   error_reporter->Report("Set up successful...\n");
 
-  
-
-  //capture accelero
-  myled1 =1;
-  for(int i=0;i<20;i++){
-    BSP_ACCELERO_Init();
-    int16_t pDataXYZ[3] = {0};
-    BSP_ACCELERO_AccGetXYZ(pDataXYZ);
-    CaptureData[i][0] = pDataXYZ[0];
-    CaptureData[i][1] = pDataXYZ[1];
-    CaptureData[i][2] = pDataXYZ[2];
-    ThisThread::sleep_for(500ms);
-  }
-  myled1 =0;
-  Analyze();
 
 
   //gesture
   while (true) {
-    if(mode == MODE_CAPTURE)
-
-      
-
+    if(mode == MODE_CAPTURE){
       // Attempt to read new data from the accelerometer
       got_data = ReadAccelerometer(error_reporter, model_input->data.f,
                                   input_length, should_clear_buffer);
@@ -596,26 +542,28 @@ int AngleSelect(){
   
 }
 
-void Analyze(){
 
+
+
+void Analyze(){
   //count
   int count =0;
-  for(those data){
-    angle = ( acos(pDataXYZ[2]/GRAVITY)*180.0 )/PI;
-
+  for(int i=0;i<32;i++){
+    angle = ( acos(CaptureData[i][2]/GRAVITY)*180.0 )/PI;
     if( (angle > 30) && (angle<60) ){
-      count++
+      count++;
     }
   }
 
   //feature
-  if(count<20){//feature 1, 30 ~ 60 , < 20 times
-    feature =1;
+  if(count<10){//feature 1, 30 ~ 60 , < 10 times
+    feature[captureTimes] =1;
   }
-  else if( (count>20)&&(count<40) ){//feature 2, 30 ~ 60 , 20~40 times
-    feature =2;
+  else if( (count>=10)&&(count<=20) ){//feature 2, 30 ~ 60 , 10~20 times
+    feature[captureTimes] =2;
   }
-  else{ //feature 3, 30 ~ 60 , >60 times
-    feature =3;
+  else{ //feature 3, 30 ~ 60 , >20 times
+    feature[captureTimes] =3;
   }
+
 }

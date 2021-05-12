@@ -11,6 +11,9 @@ serdev = '/dev/ttyACM0'
 s = serial.Serial(serdev, 9600)
 ## mqtt
 import paho.mqtt.client as paho
+## plot
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 #mine: variable
@@ -34,21 +37,25 @@ def on_subscribe(mosq, obj, mid, granted_qos):
 def on_unsubscribe(mosq, obj, mid, granted_qos):
     print("Unsubscribed OK")
 
+
 def on_message(mosq, obj, msg):
     print("[Received] Topic: " + msg.topic + ", Message: " + str(msg.payload) + "\n")
     
-
-    maybe neet to change
     global num
     num = num + 1
-    if (num%6)==1:
-        s.write(bytes("/tilt/run\r", 'UTF-8'))
-    elif (num%6)==0:
-        s.write(bytes("/gesture/run\r", 'UTF-8'))
-    else:
-        print("haha")
+    if (num%11)==1:
+        #send command
+        s.write(bytes("/retrieve/run\r", 'UTF-8'))
 
-  
+        #plot, not yet
+        np.linspace(0, 12, 256, endpoint=True)
+        x,y = np.cos(X), np.sin(X)
+        plt.plot(X,x)
+        plt.plot(X,y)
+        plt.show()  
+
+    else:
+        num = num
 
 
 
