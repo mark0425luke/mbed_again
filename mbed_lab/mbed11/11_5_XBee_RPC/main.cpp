@@ -88,6 +88,8 @@ Thread t;
           }
        }
  
+
+      //printf("buffer is %s\r\n",buf);//..............test
        RPC::call(buf, outbuf);
  
        printf("%s\r\n", outbuf);

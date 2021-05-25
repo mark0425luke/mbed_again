@@ -40,7 +40,6 @@ def on_unsubscribe(mosq, obj, mid, granted_qos):
 
 def on_message(mosq, obj, msg):
     print("[Received] Topic: " + msg.topic + ", Message: " + str(msg.payload) + "\n")
-    
     global num
     num = num + 1
     if (num%11)==1:

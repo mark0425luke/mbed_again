@@ -45,9 +45,33 @@ char = s.read(3)
 print("Exit AT mode.")
 print(char.decode())
 
+
 print("start sending RPC")
 
-s.write("/accelero/run\r".encode())
+
+#s.write(bytes("/accelero/run 0\r", 'UTF-8'))
+s.write("/getAcc/run 0\r".encode())
+
+#haha = s.read(22)
+#print(haha.decode())
+
+
+while True:
+    haha = s.read(26)
+    print(haha.decode('unicode_escape'))
+    time.sleep(1)
+    time.sleep(1)
+
+
+'''
+while True:
+    s.write("/myled1/write 1\r".encode())
+    time.sleep(1)
+    s.write("/myled1/write 0\r".encode())
+    time.sleep(1)
+'''
+
+s.close()
     
 
     

@@ -3,28 +3,29 @@
 #include "stm32l475e_iot01_accelero.h"
 
 
+
+//my rpc
+void getAcc(Arguments *in, Reply *out);
+RPCFunction rpcAcc(&getAcc, "getAcc");
+
+//
 static BufferedSerial pc(STDIO_UART_TX, STDIO_UART_RX);
 static BufferedSerial xbee(D1, D0);
 
 EventQueue queue(32 * EVENTS_EVENT_SIZE);
 Thread t;
- 
- RpcDigitalOut myled1(LED1,"myled1");
- RpcDigitalOut myled2(LED2,"myled2");
- RpcDigitalOut myled3(LED3,"myled3");
 
- void accelero(Arguments *in, Reply *out);
- RPCFunction rpc_accelero(&accelero, "accelero");
- 
- void xbee_rx_interrupt(void);
- void xbee_rx(void);
- void reply_messange(char *xbee_reply, char *messange);
- void check_addr(char *xbee_reply, char *messenger);
- 
-
- 
+RpcDigitalOut myled1(LED1,"myled1");
+//RpcDigitalOut myled2(LED2,"myled2");
+//RpcDigitalOut myled3(LED3,"myled3");
 
 
+void xbee_rx_interrupt(void);
+void xbee_rx(void);
+void reply_messange(char *xbee_reply, char *messange);
+void check_addr(char *xbee_reply, char *messenger);
+
+ //
  int main(){
  
     pc.set_baud(9600);
@@ -75,6 +76,7 @@ Thread t;
     // Setup a serial interrupt function of receiving data from xbee
     xbee.set_blocking(false);
     xbee.sigio(mbed_event_queue()->event(xbee_rx_interrupt));
+    //xbee.sigio(mbed_event_queue()->event(xbee_rx));
  }
  
  void xbee_rx_interrupt(void)
@@ -95,11 +97,16 @@ Thread t;
           break;
           }
        }
- 
+
+
+      //printf("buffer is %s\r\n",buf);//..............test
        RPC::call(buf, outbuf);
  
        printf("%s\r\n", outbuf);
+
        ThisThread::sleep_for(1s);
+
+       //xbee.write("outbuf", 34);
     }
  
  }
@@ -125,22 +132,24 @@ void check_addr(char *xbee_reply, char *messenger){
    xbee_reply[0] = '\0';
    xbee_reply[1] = '\0';
    xbee_reply[2] = '\0';
-   xbee_reply[3] = '\0';
+  xbee_reply[3] = '\0';
 }
 
-
-void accelero(Arguments *in, Reply *out){
-   for(int i=0;i<10;i++){
-      BSP_ACCELERO_Init();
-      int16_t pDataXYZ[3] = {0};
+void getAcc(Arguments *in, Reply *out){
+   
+   printf("Start accelerometer init\n");
+   BSP_ACCELERO_Init();
+   int16_t pDataXYZ[3] = {0};
+   char buffer[200];
+      //out->putData(buffer);
+   
+   while(true){
+      //xbee.write("abcdef\r\n",8);
       BSP_ACCELERO_AccGetXYZ(pDataXYZ);
-
-      
-      char buff[100];
-      printf(buff, "data are  (%d,%d,%d)\n", pDataXYZ[0], pDataXYZ[1], pDataXYZ[2]);
-      
-      //out->putData(buff);
-
-      ThisThread::sleep_for(500ms);
+      sprintf(buffer, "(%6d, %6d, %6d)\r\n", pDataXYZ[0], pDataXYZ[1], pDataXYZ[2]);
+      xbee.write(buffer,26);
+      ThisThread::sleep_for(1000ms);
+      ThisThread::sleep_for(1000ms);
    }
- }
+   
+}
