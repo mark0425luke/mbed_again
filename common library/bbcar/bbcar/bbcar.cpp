@@ -32,10 +32,8 @@ void BBCar::setCalibTable( int len0, double pwm_table0[], double speed_table0[],
 void BBCar::goStraightCalib ( double speed ){
     servo0.set_factor(1);
     servo1.set_factor(1);
-    
-    //mine: i have changed the direction
-    servo0.set_speed_by_cm(-speed);
-    servo1.set_speed_by_cm(speed);
+    servo0.set_speed_by_cm(speed);
+    servo1.set_speed_by_cm(-speed);
 }
 
 /*	speed : speed value of servo
