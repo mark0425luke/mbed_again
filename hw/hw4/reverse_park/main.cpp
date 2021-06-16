@@ -4,10 +4,8 @@
 
 //bbcar related
 Ticker servo_ticker;
-Ticker encoder_ticker;
 PwmOut pin5(D5), pin6(D6);
 BBCar car(pin5, pin6, servo_ticker);
-DigitalIn encoder(D11);
 BufferedSerial pc(USBTX, USBRX);
 
 //xbee
@@ -20,15 +18,15 @@ DigitalOut myled(LED1);
 int d1;
 int d2;
 char direct[20];
-volatile int steps;
-volatile int last;
 #define HOLES 32
 #define DIS90	17.27875
 #define DIS180	8.63937
 #define DIS270	5.75958
 #define SpeedPerSec 17
 #define NinetyDegreeMilliSec 1250
-float walk=0; 
+#define CarLength 10.5
+#define CarWidth 11
+float walk; 
 
 //s = r * theta
 //r = 2 wheel distance
@@ -38,7 +36,8 @@ float walk=0;
 void ReversePark(Arguments *in, Reply *out);
 RPCFunction rpcReversePark(&ReversePark, "ReversePark");
 void west();
-void encoder_control();
+
+
 
 //main
 int main() {
@@ -53,11 +52,12 @@ int main() {
 
    //led & printf for test
    myled = 0;
-   printf("haha\n");
+   //printf("haha\n");
 
-	//encoder
+	
+	//
 	pc.set_baud(9600);
-	encoder_ticker.attach(&encoder_control, 10ms);
+	
 
 	//xbee
    char buf[256], outbuf[256];
@@ -68,7 +68,7 @@ int main() {
       for( int i = 0; ; i++ ) {
          char recv = fgetc(devin);
          if(recv == '\n') {
-            printf("\r\n");
+            //printf("\r\n");
             break;
          }
          buf[i] = fputc(recv, devout);
@@ -78,11 +78,7 @@ int main() {
 }
 
 //function definition
-void encoder_control() {
-    int value = encoder;
-    if (!last && value) steps++;
-    last = value;
-}
+
 
 void ReversePark(Arguments *in, Reply *out){
    
@@ -97,40 +93,81 @@ void ReversePark(Arguments *in, Reply *out){
    switch(direct[0]){
    		case 'w':
    			west();
-   			;
    			break;
    		case 'e'://turn CCW 180 degree;
+		   
+			//becuase d2 - CarLength
+			car.goStraight(-100);
+			walk = float(CarLength)/SpeedPerSec*1000;
+			ThisThread::sleep_for(walk);
+			car.stop();
+			
+			//because d1 - CarWidth
 			car.turn(100,0.3);
-   		/*steps=0;last=0;
-			while(steps*6.5*3.14 <  DIS180) {
-				ThisThread::sleep_for(100ms);
-			}*/
-         walk = float(NinetyDegreeMilliSec) * (180/90);
-         ThisThread::sleep_for(walk);
+			walk = float(NinetyDegreeMilliSec) * (90/90);
+			ThisThread::sleep_for(walk);
 			car.stop();
-   			west();
-   			break;
+			car.goStraight(-100);
+			walk = float(CarWidth)/SpeedPerSec*1000;
+			ThisThread::sleep_for(walk);
+			car.stop();
+			
+			//
+			car.turn(100,0.3);
+			walk = float(NinetyDegreeMilliSec) * (90/90);
+			ThisThread::sleep_for(walk);
+			car.stop();
+			
+			//
+			west();
+			break;
    		case 's'://turn CCW 270 degree;
-		   car.turn(100,0.3);
-   		/*steps=0;last=0;
-			while(steps*6.5*3.14 < DIS270) {
-				ThisThread::sleep_for(100ms);
-			}*/
-         walk = float(NinetyDegreeMilliSec) * (270/90);
-         ThisThread::sleep_for(walk);
+		   
+		   	//becuase d1 - (CarWidth - CarLength)
+			car.goStraight(100);
+			walk = float(CarWidth - CarLength)/SpeedPerSec*1000;
+			ThisThread::sleep_for(walk);
 			car.stop();
-   			west();
-   			;
+
+			//becuase d2 - CarLength
+			car.turn(100,0.3);
+			walk = float(NinetyDegreeMilliSec) * (90/90);
+			ThisThread::sleep_for(walk);
+			car.stop();
+			car.goStraight(-100);
+			walk = float(CarLength)/SpeedPerSec*1000;
+			ThisThread::sleep_for(walk);
+			car.stop();
+
+		   	//
+			car.turn(100,0.3);
+			walk = float(NinetyDegreeMilliSec) * (180/90);
+			ThisThread::sleep_for(walk);
+			car.stop();
+   			
+			//
+			west();
    			break;
    		case 'n'://turn CCW 90 degree;
-		   car.turn(100,0.3);
-   		/*steps=0;last=0;
-			while(steps*6.5*3.14 < DIS90) {
-				ThisThread::sleep_for(100ms);
-			}*/
-         walk = float(NinetyDegreeMilliSec) * (90/90);
-         ThisThread::sleep_for(walk);
+		   
+		   	//because d1 - CarWidth
+			car.goStraight(-100);
+			walk = float(CarWidth)/SpeedPerSec*1000;
+			ThisThread::sleep_for(walk);
 			car.stop();
+
+			//because d2 + (CarWidth - CarLength)
+			car.turn(100,0.3);
+         	walk = float(NinetyDegreeMilliSec) * (90/90);
+         	ThisThread::sleep_for(walk);
+			car.stop();
+			car.goStraight(-100);
+			walk = float(CarWidth - CarLength)/SpeedPerSec*1000;
+			ThisThread::sleep_for(walk);
+			car.stop();
+
+			
+			//
    			west();
    			break;
    		default:
@@ -144,40 +181,26 @@ void ReversePark(Arguments *in, Reply *out){
 void west(){
    //led & printf for test
    myled = 1;
-   printf("enter west\n");
+  // printf("enter west\n");
 
-	//go back d2+1 cm
-   car.goStraight(-100);
-	steps=0;last=0;
-	/*while(steps*6.5*3.14/HOLES < float( (d2+1) ) ){
-      printf("steps is %d\n",steps);//....................test
-		ThisThread::sleep_for(100ms);
-	}*/
-   walk = (float(d2)+1)/SpeedPerSec*1000;
-   //printf("dist is %f\n",dist);//......................test
-   ThisThread::sleep_for(walk);
+	//go back d2 + CarLength + 5 cm
+	car.goStraight(-100);
+   	walk = (float(d2 + CarLength)+10)/SpeedPerSec*1000;
+   	//printf("dist is %f\n",dist);//......................test
+   	ThisThread::sleep_for(walk);
 	car.stop();
 	
 	//turn CCW 90 degree
 	car.turn(100,0.3);
-	/*steps=0;last=0;
-	while(steps*6.5*3.14 < DIS90 ) {
-		ThisThread::sleep_for(100ms);
-	}*/
-   walk = float(NinetyDegreeMilliSec) * (90/90);
-   ThisThread::sleep_for(walk);
+   	walk = float(NinetyDegreeMilliSec) * (90/90);
+   	ThisThread::sleep_for(walk);
 	car.stop();
 
-	//turn back d1+3 cm
-   car.goStraight(-100);
-	/*steps=0;last=0;
-	while(steps*6.5*3.14/HOLES < float( (d1+3) ) ){
-		ThisThread::sleep_for(100ms);
-	}*/
-   walk = (float(d1)+3)/SpeedPerSec*1000;
-   ThisThread::sleep_for(walk);
+	//turn back d1 + CarLength + 5 cm
+  	car.goStraight(-100);
+   	walk = (float(d1 + CarLength)+10)/SpeedPerSec*1000;
+   	ThisThread::sleep_for(walk);
 	car.stop();
 }
 
 
-還要修正

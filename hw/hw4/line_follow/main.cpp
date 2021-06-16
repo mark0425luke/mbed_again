@@ -19,6 +19,11 @@ int x_2;
 int y_1;
 int y_2;
 #define IMAGE_MIDDLE 80 
+#define FRONT 60
+#define SafeLeftBound -35
+#define SafeRightBound 35
+#define TurnLeftBound 40
+#define TurnRightBound 120
 
 // function declaration
 void LineFollow(Arguments *in, Reply *out);
@@ -56,22 +61,30 @@ void LineFollow(Arguments *in, Reply *out){
    //printf("%d,%d,%d,%d\r\n",x_1,y_1,x_2,y_2);//.......................test
 
    float middle = (x_1+x_2)/2;
-   if(  -50<(x_2-x_1) && (x_2-x_1)<50 ){
-		car.goStraight(50);
-		ThisThread::sleep_for(50ms);
-		car.stop();
+   if(y_2 > FRONT){
+      if( x_2<SafeRightBound && x_1>SafeRightBound){
+         car.goStraight(50);
+         ThisThread::sleep_for(50ms);
+         car.stop();
+      }
+      else if( middle < IMAGE_MIDDLE ){
+         car.turn(50,-0.3);
+         ThisThread::sleep_for(50ms);
+         car.stop();
+      }
+      else if(middle > IMAGE_MIDDLE ){
+         car.turn(50,0.3);
+         ThisThread::sleep_for(50ms);
+         car.stop();
+      }
+      else{
+         car.goStraight(-50);
+         ThisThread::sleep_for(50ms);
+         car.stop();
+      }
+      
    }
-   else{
-	   if( middle<IMAGE_MIDDLE ){
-		   car.turn(50,0.3);
-		   ThisThread::sleep_for(50ms);
-		   car.stop();
-	   }
-	   else{
-		   car.turn(50,-0.3);
-		   ThisThread::sleep_for(50ms);
-		   car.stop();
-	   }
-   }
+   else{}
+   
 		
 }
