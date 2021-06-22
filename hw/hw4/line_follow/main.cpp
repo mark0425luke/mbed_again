@@ -22,8 +22,7 @@ int y_2;
 #define FRONT 60
 #define SafeLeftBound -35
 #define SafeRightBound 35
-#define TurnLeftBound 40
-#define TurnRightBound 120
+
 
 // function declaration
 void LineFollow(Arguments *in, Reply *out);
@@ -62,7 +61,7 @@ void LineFollow(Arguments *in, Reply *out){
 
    float middle = (x_1+x_2)/2;
    if(y_2 > FRONT){
-      if( x_2<SafeRightBound && x_1>SafeRightBound){
+      if( x_2<SafeRightBound && x_1>SafeLeftBound){
          car.goStraight(50);
          ThisThread::sleep_for(50ms);
          car.stop();
